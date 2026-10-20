@@ -1,0 +1,109 @@
+// ============================================================
+// ShopCore 独立工程构建脚本
+// 约定沿用 mcPlugin：Paper 26.3、Java 25、run-paper，产物留档到 ./release/
+// ============================================================
+
+plugins {
+    id 'java'
+    id 'xyz.jpenilla.run-paper' version '3.1.0'
+}
+
+group = 'com.example'
+version = 'Beta_0_3_2'
+
+// 产物命名：<项目名>-mc26_3-plugin-<项目版本>
+base {
+    archivesName = "ShopCore-mc${minecraftVersion.replace('.', '_')}-plugin"
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'papermc'
+        url = 'https://repo.papermc.io/repository/maven-public/'
+    }
+}
+
+dependencies {
+    // 运行期由服务端提供 Paper API，必须 compileOnly，否则会打进去造成类冲突
+    compileOnly "io.papermc.paper:paper-api:${paperApiVersion}"
+
+    // MainMenu（时钟主菜单）API：商店作为它的一个功能入口，运行期由 MainMenu 插件提供
+    def mainMenuJar = file('../mcPlugin/release/MainMenu/MainMenu-mc26_3-plugin-Beta_1_2_0.jar')
+    if (!mainMenuJar.isFile()) {
+        throw new GradleException("缺少 MainMenu API jar：${mainMenuJar}。"
+                + "请先构建 mcPlugin/MainMenu，或把路径改成现有的 MainMenu 产物。")
+    }
+    compileOnly files(mainMenuJar)
+
+    // Wallet：ShopCore 的唯一货币来源与支付通道（运行期由 Wallet 插件提供）
+    def walletJar = file('../mcPlugin/release/Wallet/Wallet-mc26_3-plugin-Beta_0_2_1.jar')
+    if (!walletJar.isFile()) {
+        throw new GradleException("缺少 Wallet API jar：${walletJar}。"
+                + "请先构建 mcPlugin/Wallet，或把路径改成现有的 Wallet 产物。")
+    }
+    compileOnly files(walletJar)
+    testImplementation files(walletJar)
+
+    // 单测：价格计算、输入解析、SQLite 存储、兑换配置
+    testImplementation "io.papermc.paper:paper-api:${paperApiVersion}"
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'org.xerial:sqlite-jdbc:3.49.1.0'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(targetJavaVersion.toInteger())
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = targetJavaVersion.toInteger()
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+        exceptionFormat = 'full'
+    }
+}
+
+// 打包时把 paper-plugin.yml 里的 ${version} 换成构建版本号
+tasks.named('processResources') {
+    filteringCharset = 'UTF-8'
+    inputs.property('version', providers.provider { project.version })
+    filesMatching('paper-plugin.yml') {
+        expand(version: project.version.toString())
+    }
+}
+
+// 每次构建都把产物归档到 ./release/ShopCore/，文件名带版本，不互相覆盖
+tasks.register('archiveArtifact') {
+    group = 'build'
+    description = '把构建产物复制到 ./release/ShopCore/ 留档'
+    def artifact = tasks.named('jar').flatMap { it.archiveFile }
+    def releaseDir = layout.projectDirectory.dir('release/ShopCore')
+    inputs.file(artifact)
+    doLast {
+        def source = artifact.get().asFile
+        def targetDir = releaseDir.asFile
+        if (!targetDir.isDirectory() && !targetDir.mkdirs()) {
+            throw new GradleException("无法创建归档目录：${targetDir}")
+        }
+        java.nio.file.Files.copy(source.toPath(),
+                new File(targetDir, source.name).toPath(),
+                java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+        logger.lifecycle("已归档：${source.name} → ./release/ShopCore/")
+    }
+}
+tasks.named('build') {
+    finalizedBy 'archiveArtifact'
+}
+
+tasks.named('runServer') {
+    minecraftVersion(project.minecraftVersion)
+    runDirectory(file('run'))
+}

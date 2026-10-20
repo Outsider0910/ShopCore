@@ -1,0 +1,40 @@
+### Gradle ###
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+### 本地测试服务器（runServer 生成）###
+run/
+logs/
+*.log
+
+### IDE ###
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+.vscode/
+.settings/
+.classpath
+.project
+bin/
+.metadata/
+
+### Java / 构建产物 ###
+*.class
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+# 构建产物留档目录：每次小改版的产物都要保留，所以这里例外放行
+!release/**/*.jar
+
+### 本机机密（测试 API Key、本机路径等）###
+docs/local.md
+
+### 文档体系（docs/dev 与 docs/exp 提交，计划不提交）###
+docs/plan/
+
+### 系统文件 ###
+.DS_Store
+Thumbs.db
+desktop.ini

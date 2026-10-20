@@ -1,0 +1,277 @@
+# ShopCore 配置
+# 文本使用 MiniMessage：https://docs.advntr.dev/minimessage/format.html
+# 修改后执行 /shopadmin reload（需要 shopcore.admin）
+
+server:
+  # 会写进经济系统的 businessNo：mc:<server.id>:shop:<订单UUID>，不能包含冒号
+  id: "server"
+
+database:
+  # 相对于 plugins/ShopCore/；SQLite 使用 WAL，备份时连同 -wal/-shm 一起复制
+  file: "shop.db"
+
+economy:
+  # 货币种类、名称、精度、余额全部来自 Wallet 官网资产表。
+  # 商店不在本地配置或保存任何货币；商品/寄售在游戏内选择官网启用货币。
+  # 等待 Wallet/官网返回结果的最长时间；超时按“结果未知”处理，不发货
+  payment-timeout-seconds: 60
+  # 官网资产表缓存时间（秒）；过期后下一次打开商店/兑换页会重新读取
+  assets-cache-seconds: 60
+  # 玩家余额缓存时间（秒），避免主菜单频繁刷新时重复请求官网
+  balance-cache-seconds: 30
+  # 钱包流水时间显示时区（与 Wallet 默认一致）
+  timezone: "Asia/Shanghai"
+
+exchange:
+  # 货币兑换：源/目标货币必须是 Wallet 官网 enabled 资产
+  enabled: true
+  # true：配置了 A -> B 后，没有显式配置 B -> A 时自动按 1/rate 允许反向兑换
+  # false：只允许 rates 里明确写出的方向
+  bidirectional: true
+  # 1 单位源货币 = rate 单位目标货币
+  # code 必须与 Wallet 官网资产 code 一致；只有双方都在 Wallet enabled 资产里才会显示
+  rates:
+    POINT:
+      CNY: "0.01"
+    # 想固定反向比例时可以显式写，优先于自动倒数：
+    # CNY:
+    #   POINT: "100"
+
+player-shop:
+  # 每位玩家同时存在的玩家寄售笔数上限
+  max-listings-per-player: 28
+
+limits:
+  min-price: "1"
+  max-price: "1000000"
+  # 单次上架/购买的最大件数
+  max-quantity: 2304
+  # 聊天输入等待时间
+  input-timeout-seconds: 60
+  # 点击确认按钮的有效时间
+  confirm-timeout-seconds: 120
+
+rules:
+  # DAILY/WEEKLY/MONTHLY 的重置时区；留空使用服务器默认时区
+  reset-zone: ""
+
+menu:
+  title-main: "<dark_gray>商店</dark_gray>"
+  title-official: "<dark_gray>官方商店</dark_gray>"
+  title-player: "<dark_gray>玩家商店</dark_gray>"
+  title-listings: "<dark_gray>我的上架</dark_gray>"
+  title-mailbox: "<dark_gray>待领取物品</dark_gray>"
+  title-admin: "<dark_gray>商店管理</dark_gray>"
+  title-admin-manage: "<dark_gray>官方商品管理</dark_gray>"
+  title-admin-edit: "<dark_gray>编辑官方商品</dark_gray>"
+  title-select-item: "<dark_gray>选择物品</dark_gray>"
+  title-select-currency: "<dark_gray>选择货币</dark_gray>"
+  title-exchange: "<dark_gray>货币兑换</dark_gray>"
+  title-wallet-history: "<dark_gray>钱包流水</dark_gray>"
+
+messages:
+  prefix: "<gray>[<gold>商店</gold>]</gray> "
+  player-only: "<red>该命令只能由玩家执行。</red>"
+  no-permission: "<red>你没有权限执行此操作。</red>"
+  reloaded: "<green>配置已重载。</green>"
+  unknown-subcommand: "<red>未知的子命令，使用 /shop 查看帮助。</red>"
+
+  buttons:
+    confirm: "<green><bold>[确认]</bold></green>"
+    cancel: "<red><bold>[取消]</bold></red>"
+    confirm-hover: "<gray>点击确认</gray>"
+    cancel-hover: "<gray>点击取消</gray>"
+
+  error:
+    no-wallet: "<red>Wallet 尚未就绪，暂时无法购买/上架。</red>"
+    no-economy: "<red>Wallet 尚未就绪，暂时无法购买。</red>"
+    economy-service-missing: "<red>Wallet 尚未就绪。</red>"
+    database: "<red>商店数据读写失败，请稍后再试。</red>"
+    item-not-found: "<red>商品不存在或已下架。</red>"
+    listing-not-found: "<red>该寄售不存在、已售罄或已被下架。</red>"
+    disabled-item: "<red>该商品已被管理员停用。</red>"
+    sold-out: "<red>库存不足，当前剩余 <stock> 件。</red>"
+    not-enough-listing: "<red>该寄售剩余数量不足，当前剩余 <stock> 件。</red>"
+    limit-reached: "<red>你已达到该商品的限购数量（<limit> 件）。</red>"
+    own-listing: "<red>不能购买自己上架的物品。</red>"
+    not-enough-money: "<red>余额不足，需要 <total> <currency>。</red>"
+    payment-failed: "<red>支付失败：<reason></red>"
+    payment-unknown: "<red>支付结果未知，商店暂不发货。请把订单号 <order> 提供给管理员对账。</red>"
+    price-changed: "<red>价格已变化，请重新操作。</red>"
+    not-enough-items: "<red>背包中的物品数量不足，或组件已经变化。</red>"
+    max-listings: "<red>你的寄售数量已达上限（<limit> 笔）。</red>"
+    ui-item: "<red>商店菜单物品不能上架。</red>"
+    empty-hand: "<red>请手持要上架的物品。</red>"
+    invalid-input: "<red><message></red>"
+    inventory-full: "<red>背包已满，物品保留在待领取中。</red>"
+    order-pending: "<red>该商品有订单正在处理，请稍后再试。</red>"
+    admin-only: "<red>只有管理员可以执行该操作。</red>"
+    player-not-found: "<red>找不到该玩家。</red>"
+    order-not-found: "<red>找不到该订单。</red>"
+    order-finished: "<red>该订单已经处理过了。</red>"
+    currency-not-found: "<red>Wallet 中没有该货币或该货币未启用：<currency></red>"
+    currency-selection-expired: "<red>货币选择已过期，请重新操作。</red>"
+    exchange-unavailable: "<red>货币兑换未启用，或 Wallet 尚未就绪。</red>"
+    exchange-pair-not-found: "<red>该兑换方向不存在或已停用。</red>"
+    exchange-too-small: "<red>按目标货币精度计算后的金额为 0，请增加兑换数量。</red>"
+
+  prompt:
+    exchange: "<yellow>请输入要兑换的 <white><from></white> 数量（1 <from> = <rate> <to>）。</yellow>"
+    list: "<yellow>请输入要上架的数量和单价，格式：数量 单价（例如：10 100）。货币：<currency>（<code>）</yellow>"
+    buy: "<yellow>请输入要购买的数量（例如：3）。</yellow>"
+    admin-price: "<yellow>请输入官方商品的单价（<currency>，<code>）。</yellow>"
+    admin-stock: "<yellow>请输入库存，-1 表示无限。</yellow>"
+    admin-limit: "<yellow>请输入每位玩家的限购件数，0 表示不限。</yellow>"
+    admin-growth: "<yellow>请输入每件涨价百分比，0 表示不涨价（例如：5 表示每件 +5%）。</yellow>"
+    admin-max-price: "<yellow>请输入单件最高价，0 表示不设上限。</yellow>"
+
+  confirm:
+    exchange: "<yellow>确认用 <white><source></white> <white><from></white> 兑换 <white><target></white> <white><to></white>？比例：1 <from> = <rate> <to>。</yellow>"
+    list: "<yellow>确认上架 <white><quantity></white> × <white><item></white>，单价 <gold><price> <currency></gold>，总价 <gold><total> <currency></gold>？</yellow>"
+    purchase: "<yellow>确认购买 <white><quantity></white> × <white><item></white>，单价 <gold><price> <currency></gold>，总价 <gold><total> <currency></gold>？</yellow>"
+    delist: "<yellow>确认下架 <white><quantity></white> × <white><item></white>？物品会放入你的待领取。</yellow>"
+    admin-delete: "<red>确认删除官方商品 <white><item></white>？此操作不可撤销。</red>"
+
+  success:
+    exchange: "<green>兑换成功：<white><source></white> <white><from></white> → <white><target></white> <white><to></white>。</green>"
+    listed: "<green>上架成功：<white><quantity></white> × <white><item></white>，单价 <gold><price> <currency></gold>。</green>"
+    delisted: "<green>下架成功：<white><quantity></white> × <white><item></white> 已放入待领取。</green>"
+    purchased: "<green>购买成功：<white><quantity></white> × <white><item></white>，支付 <gold><total> <currency></gold>。</green>"
+    admin-added: "<green>官方商品已上架：<white><item></white>，单价 <gold><price> <currency></gold>。</green>"
+    admin-updated: "<green>官方商品设置已更新。</green>"
+    admin-deleted: "<green>官方商品已删除。</green>"
+    delivered: "<green>已领取 <white><amount></white> 件物品。</green>"
+    mailbox-empty: "<gray>没有待领取物品。</gray>"
+    test-currency: "<green>已更新 <player> 的 <currency>：<amount>，当前余额 <balance>。</green>"
+    order-completed: "<green>订单已完成，物品已放入买家待领取。</green>"
+    order-cancelled: "<green>订单已取消，库存/寄售数量已释放。</green>"
+
+  info:
+    mailbox-count: "<yellow>你有 <white><count></white> 件待领取物品，使用 /shop mail 领取。</yellow>"
+    mailbox-remaining: "<yellow>背包空间不足，还有 <white><count></white> 件留在待领取中。</yellow>"
+    balance: "<gray>余额：<gold><balance> <currency></gold></gray>"
+    balance-line: "<gray><currency>：<white><value></white></gray>"
+    balance-loading: "<gray>正在加载货币…</gray>"
+    unbound: "未绑定网站账号"
+    no-currencies: "<gray>本服暂无可用货币</gray>"
+    click-wallet-history: "<dark_gray>点击查看流水</dark_gray>"
+    wallet-history-empty: "<gray>暂无流水。</gray>"
+    wallet-balance: "<gray><player> 的 <currency>（<code>）余额：<gold><balance></gold></gray>"
+    wallet-balances-header: "<yellow><player> 的 Wallet 余额：</yellow>"
+    wallet-balance-line: "<gray>- <currency>（<code>）：<gold><balance></gold></gray>"
+    admin-currency-empty: "<gray>Wallet 官网资产表为空。</gray>"
+    admin-currency-header: "<yellow>Wallet 官网货币（enabled = 官网启用，商店只使用 enabled 的货币）：</yellow>"
+    admin-currency-line: "<gray>- <white><code></white> <name> scale=<scale> 官网=<state> 本服=<local></gray>"
+    admin-currency-footer: "<gray>商店当前可用货币数：<white><count></white></gray>"
+    item-sold: "<green>你上架的 <white><quantity></white> × <white><item></white> 已售出，收入 <gold><total> <currency></gold>。</green>"
+    items-returned: "<gray>已退回 <white><quantity></white> × <white><item></white>（背包满时在待领取）。</gray>"
+    price-current: "<gray>你当前购买单价：<gold><price> <currency></gold></gray>"
+    price-range: "<gray>本次购买总价：<gold><total> <currency></gold></gray>"
+    limit-remaining: "<gray>本周期剩余可购：<white><remaining></white> 件</gray>"
+    stock-unlimited: "<gray>库存：<white>无限</white></gray>"
+    stock-finite: "<gray>库存：<white><stock></white></gray>"
+    limit-unlimited: "<gray>限购：<white>不限</white></gray>"
+    limit-finite: "<gray>限购：<white><limit></white> 件/<period></white></gray>"
+    growth-on: "<gray>涨价：每件 +<percent>%<cap></gray>"
+    growth-off: "<gray>涨价：<white>关闭</white></gray>"
+    growth-cap: "<gray>，单件上限 <gold><cap> <currency></gold></gray>"
+    reset-period: "<gray>重置周期：<white><period></white></gray>"
+    listing-owner: "<gray>卖家：<white><seller></white></gray>"
+    listing-remaining: "<gray>剩余：<white><quantity></white></gray>"
+    click-buy: "<yellow>点击购买</yellow>"
+    click-delist: "<yellow>点击下架</yellow>"
+    click-exchange: "<yellow>点击兑换</yellow>"
+    click-edit: "<yellow>点击编辑</yellow>"
+    click-claim: "<yellow>点击领取</yellow>"
+    click-select: "<yellow>点击选择</yellow>"
+    page: "<gray>第 <white><page></white>/<white><pages></white> 页</gray>"
+    empty-official: "<gray>官方商店暂时没有商品。</gray>"
+    empty-player: "<gray>玩家商店暂时没有寄售。</gray>"
+    empty-listings: "<gray>你还没有上架任何物品。</gray>"
+    empty-mailbox: "<gray>没有待领取物品。</gray>"
+    admin-orders-empty: "<gray>没有需要处理的订单。</gray>"
+    admin-orders-header: "<yellow>待处理/结果未知订单：</yellow>"
+    admin-order-line: "<gray>- <white><order></white> <status> 买家=<white><buyer></white> 数量=<white><quantity></white> 总额=<white><total></white></gray>"
+    admin-exchanges-empty: "<gray>没有兑换记录。</gray>"
+    admin-exchanges-header: "<yellow>最近兑换记录：</yellow>"
+    admin-exchange-line: "<gray>- <white><order></white> <status> <from>→<to> <source>→<target> 玩家=<white><player></white></gray>"
+    confirm-expired: "<red>确认已过期，请重新操作。</red>"
+    input-expired: "<red>输入已超时，请重新操作。</red>"
+    cancelled: "<gray>已取消。</gray>"
+
+  help:
+    admin: "<yellow>/shopadmin</yellow> 打开管理；<yellow>/shopadmin reload</yellow> 重载；<yellow>/shopadmin orders</yellow> 查看待处理订单；<yellow>/shopadmin resolve ...</yellow> 完成/取消订单；<yellow>/shopadmin exchanges</yellow> 兑换记录；<yellow>/shopadmin exchange ...</yellow> 管理员直接兑换；<yellow>/shopadmin wallet ...</yellow> 查看 Wallet 余额；<yellow>/shopadmin currency</yellow> 查看 Wallet 官网货币。"
+    admin-wallet: "<yellow>/shopadmin wallet <玩家> [币种]</yellow>"
+    admin-exchange: "<yellow>/shopadmin exchange <玩家> <源货币> <目标货币> <数量></yellow>"
+    admin-resolve: "<yellow>/shopadmin resolve <订单UUID|businessNo> complete|cancel</yellow>"
+
+  period:
+    never: "永不"
+    daily: "每天"
+    weekly: "每周"
+    monthly: "每月"
+
+  state:
+    enabled: "启用"
+    disabled: "停用"
+
+  ui:
+    mainmenu:
+      entry-name: "<green><bold>商店</bold></green>"
+      entry-lore: "<gray>官方商店 / 玩家商店 / 货币兑换</gray>"
+    main:
+      official-name: "<green><bold>官方商店</bold></green>"
+      official-lore: "<gray>管理员上架的商品</gray>"
+      player-name: "<aqua><bold>玩家商店</bold></aqua>"
+      player-lore: "<gray>玩家自由寄售</gray>"
+      listings-name: "<yellow><bold>我的上架</bold></yellow>"
+      listings-lore: "<gray>查看并下架自己的寄售</gray>"
+      mailbox-name: "<gold><bold>待领取</bold></gold>"
+      mailbox-lore: "<gray>背包满时购买/下架的物品会寄存在这里</gray>"
+      balance-name: "<white>钱包</white>"
+      balance-lore: "<gray>正在查询...</gray>"
+      exchange-name: "<gold><bold>货币兑换</bold></gold>"
+      exchange-lore: "<gray>按配置比例兑换两种货币</gray>"
+      close-name: "<gray>返回主菜单</gray>"
+    nav:
+      back-name: "<yellow>返回</yellow>"
+      prev-name: "<yellow>上一页</yellow>"
+      next-name: "<yellow>下一页</yellow>"
+      close-name: "<gray>返回主菜单</gray>"
+      prev-lore: "<gray>没有上一页</gray>"
+      next-lore: "<gray>没有下一页</gray>"
+    player:
+      list-name: "<green><bold>上架物品</bold></green>"
+      list-lore: "<gray>点击后选择背包中的物品</gray>"
+      delist-name: "<yellow><bold>下架物品</bold></yellow>"
+      delist-lore: "<gray>点击选择自己的寄售并下架</gray>"
+      mailbox-name: "<gold><bold>待领取</bold></gold>"
+    mail:
+      claim-name: "<green><bold>领取全部</bold></green>"
+      claim-lore: "<gray>把待领取物品放进背包</gray>"
+    exchange:
+      pair-name: "<gold><bold><from_name> → <to_name></bold></gold>"
+      rate: "<gray>1 <from> = <white><rate></white> <to></gray>"
+      empty: "<gray>没有可用的兑换方向（检查 exchange.rates 与 Wallet 货币是否启用）。</gray>"
+      unavailable: "<red>货币兑换未启用，或 Wallet 尚未就绪。</red>"
+    currency:
+      entry-name: "<gold><bold><name></bold></gold> <gray>(<code>)</gray>"
+      entry-lore: "<gray>官网货币：<white><name></white>（<code>），精度 <scale></gray>"
+      empty: "<red>Wallet 没有官网启用的货币，暂时无法上架。</red>"
+    admin:
+      entry-name: "<red><bold>商店管理</bold></red>"
+      entry-lore: "<gray>管理官方商品</gray>"
+      add-name: "<green><bold>上架官方商品</bold></green>"
+      add-lore: "<gray>选择背包物品，随后输入单价</gray>"
+      manage-name: "<yellow><bold>管理官方商品</bold></yellow>"
+      manage-lore: "<gray>调整价格、库存、限购和涨价规则</gray>"
+      price-name: "<gold>修改单价</gold>"
+      stock-name: "<gold>修改库存</gold>"
+      limit-name: "<gold>修改限购</gold>"
+      growth-name: "<gold>修改涨价百分比</gold>"
+      max-price-name: "<gold>修改单件最高价</gold>"
+      currency-name: "<gold>修改货币</gold>"
+      currency-lore: "<gray>当前：<gold><currency></gold>（<code>）</gray>"
+      reset-name: "<gold>切换重置周期</gold>"
+      enabled-name: "<gold>切换启用状态</gold>"
+      delete-name: "<red>删除商品</red>"

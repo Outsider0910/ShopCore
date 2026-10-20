@@ -1,0 +1,26 @@
+name: ShopCore
+version: '${version}'
+main: com.example.shopcore.ShopCorePlugin
+api-version: '26.3'
+description: 官方商店 + 玩家商店：完整物品组件、游戏内上架/下架/购买、官方商品规则
+authors: [ShopCore]
+website: https://github.com/zhou-BZDDX/mcPlugin
+
+dependencies:
+  server:
+    # 商店是时钟主菜单的功能项，MainMenu 必须先加载
+    MainMenu:
+      load: BEFORE
+      required: true
+    # 商店的货币类型、余额、扣款/入账全部走 Wallet（唯一经济来源），必须存在
+    Wallet:
+      load: BEFORE
+      required: true
+
+permissions:
+  shopcore.use:
+    description: 允许打开商店、领取邮箱、上架/购买玩家商品
+    default: true
+  shopcore.admin:
+    description: 允许打开商店管理界面、调整官方商品、查询 Wallet 余额
+    default: op

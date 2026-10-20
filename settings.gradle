@@ -1,0 +1,6 @@
+plugins {
+    // 本机缺少目标 JDK 时，Gradle 可自动下载对应版本的工具链
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
+rootProject.name = 'ShopCore'
